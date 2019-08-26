@@ -57,34 +57,35 @@
                         </div>
                         <div class="form-group">
                             <label>邮箱</label>
-                            <input class="form-control" type="email" placeholder="请输入邮箱" name="email">
+                            <input class="form-control" type="email" placeholder="请输入邮箱" name="email" id="email">
                         </div>
                         <div class="form-group">
                             <label>昵称</label>
-                            <input class="form-control" type="text" placeholder="请输入昵称" name="nickName">
+                            <input class="form-control" type="text" placeholder="请输入昵称" name="nickName" id="nickName">
                         </div>
                         <div class="form-group">
                             <label>密码</label>
-                            <input class="form-control" type="text" placeholder="请输入密码" name="password">
+                            <input class="form-control" type="text" placeholder="请输入密码" name="password" id="password">
                         </div>
                         <div class="form-group">
                             <div class="radio-inline">
-                                <label><input type="radio" name="status" value="0">未激活</label>
+                                <label><input type="radio" name="status" value="0" id="wjh">未激活</label>
                             </div>
                             <div class="radio-inline">
-                                <label><input type="radio" checked name="status" value="1">激活</label>
+                                <label><input type="radio" checked name="status" value="1" id="jh">激活</label>
                             </div>
                         </div>
                         <div class="form-group">
                             <div class="radio-inline">
-                                <label><input type="radio" checked name="role" value="admin">超级管理员</label>
+                                <label><input type="radio" checked name="role" value="admin" id="admin">超级管理员</label>
                             </div>
                             <div class="radio-inline">
-                                <label><input type="radio" name="role" value="normal">普通用户</label>
+                                <label><input type="radio" name="role" value="normal" id="normal">普通用户</label>
                             </div>
                         </div>
                         <div class="form-group">
                             <button class="btn btn-primary" type="button" id="addUser">添加</button>
+                            <button class="btn btn-primary" type="button" id="xiuUser" style="display:none">修改</button>
                         </div>
                     </form>
                 </div>
@@ -199,8 +200,8 @@
             <td>{{$value.nickName}}</td>
             <td>{{$value.status == 1? '激活' : '未激活'}}</td>
             <td>{{$value.role == 'admin'? '超级管理员' : '普通用户'}}</td>
-            <td class="text-center">
-                <a href="javascript:;" class="btn btn-default btn-xs">编辑</a>
+            <td class="text-center" data-id='{{$value._id}}'>
+                <a href="javascript:;" class="btn btn-default btn-xs edit">编辑</a>
                 <a href="javascript:;" class="btn btn-danger btn-xs">删除</a>
             </td>
         </tr>
@@ -274,6 +275,7 @@
                     // 重新渲染
                     render(userArr);
                     $('.form-control').val('');
+                    $('#prev').attr('src', '../assets/img/default.png');
                 },
                 error: function() {
                     alert('添加失败');
@@ -299,6 +301,73 @@
                 }
             })
         });
+
+
+        // 完成修改功能
+        var id;
+        $('tbody').on('click', '.edit', function() {
+            // 获取对应的id
+            id = $(this).parent().attr('data-id');
+
+            $('form > h2').text('修改用户');
+
+            var trObj = $(this).parents('tr');
+            $('#email').val(trObj.children().eq(2).text());
+            $('#nickName').val(trObj.children().eq(3).text());
+
+            var status = trObj.children().eq(4).text();
+            var role = trObj.children().eq(5).text();
+            var imgSrc = trObj.children().eq(1).find('img').attr('src');
+
+            if (imgSrc) {
+                $('#prev').attr("src", imgSrc);
+                $('#img').val(imgSrc);
+            } else {
+                $('#prev').attr('src', '../assets/img/default.png');
+                $('#img').val('');
+            }
+
+            // 判断激活状态，和管理员身份
+            if (status == '激活') {
+                $('#jh').prop('checked', true)
+            } else {
+                $('#wjh').prop('checked', true)
+            }
+
+            if (role == '超级管理员') {
+                $('#admin').prop('checked', true)
+            } else {
+                $('#normal').prop('checked', true)
+            }
+
+            $('#addUser').hide();
+            $('#xiuUser').show();
+
+            // 给修改按钮注册点击事件
+            $('#xiuUser').on('click', function() {
+                // 获取表单的内容
+                var formData = $('#userForm').serialize();
+
+                // 发送请求
+                $.ajax({
+                    type: 'put',
+                    url: '/users/' + id,
+                    data: formData,
+                    success: function(res) {
+                        var index = userArr.findIndex(item => item._id == res._id)
+                        userArr[index] = res;
+                        render(userArr);
+                        $('#addUser').show();
+                        $('#xiuUser').hide();
+                        $('form > h2').text('修改用户');
+                        $('.form-control').val('');
+                        $('#prev').attr('src', '../assets/img/default.png');
+
+                    }
+                })
+            })
+
+        })
     </script>
 
 
