@@ -40,48 +40,51 @@
       </div> -->
             <div class="row">
                 <div class="col-md-4">
-                    <form>
+                    <form id="userForm">
                         <h2>添加新用户</h2>
                         <div class="form-group">
                             <label>头像</label>
                             <div class="form-group">
                                 <label class="form-image">
                   <input id="avatar" type="file">
-                  <img src="../assets/img/default.png">
+                  <img src="../assets/img/default.png" id="prev">
                   <i class="mask fa fa-upload"></i>
+                  <!-- 隐藏域 -->
+                  <input type="hidden" name="avatar" id="img">
                 </label>
+
                             </div>
                         </div>
                         <div class="form-group">
                             <label>邮箱</label>
-                            <input class="form-control" type="email" placeholder="请输入邮箱">
+                            <input class="form-control" type="email" placeholder="请输入邮箱" name="email">
                         </div>
                         <div class="form-group">
                             <label>昵称</label>
-                            <input class="form-control" type="text" placeholder="请输入昵称">
+                            <input class="form-control" type="text" placeholder="请输入昵称" name="nickName">
                         </div>
                         <div class="form-group">
                             <label>密码</label>
-                            <input class="form-control" type="text" placeholder="请输入密码">
+                            <input class="form-control" type="text" placeholder="请输入密码" name="password">
                         </div>
                         <div class="form-group">
                             <div class="radio-inline">
-                                <label><input type="radio">未激活</label>
+                                <label><input type="radio" name="status" value="0">未激活</label>
                             </div>
                             <div class="radio-inline">
-                                <label><input type="radio">激活</label>
+                                <label><input type="radio" checked name="status" value="1">激活</label>
                             </div>
                         </div>
                         <div class="form-group">
                             <div class="radio-inline">
-                                <label><input type="radio">超级管理员</label>
+                                <label><input type="radio" checked name="role" value="admin">超级管理员</label>
                             </div>
                             <div class="radio-inline">
-                                <label><input type="radio">普通用户</label>
+                                <label><input type="radio" name="role" value="normal">普通用户</label>
                             </div>
                         </div>
                         <div class="form-group">
-                            <button class="btn btn-primary" type="submit">添加</button>
+                            <button class="btn btn-primary" type="button" id="addUser">添加</button>
                         </div>
                     </form>
                 </div>
@@ -191,11 +194,11 @@
         {{each list}}
         <tr>
             <td class="text-center"><input type="checkbox"></td>
-            <td class="text-center"><img class="avatar" src="../assets/img/default.png"></td>
+            <td class="text-center"><img class="avatar" src="{{$value.avatar}}"></td>
             <td>{{$value.email}}</td>
             <td>{{$value.nickName}}</td>
             <td>{{$value.status == 1? '激活' : '未激活'}}</td>
-            <td>{{$value.role == 'admin'? '管理员' : '普通用户'}}</td>
+            <td>{{$value.role == 'admin'? '超级管理员' : '普通用户'}}</td>
             <td class="text-center">
                 <a href="javascript:;" class="btn btn-default btn-xs">编辑</a>
                 <a href="javascript:;" class="btn btn-danger btn-xs">删除</a>
@@ -203,6 +206,8 @@
         </tr>
         {{/each}}
     </script>
+
+    <!-- 显示用户信息 -->
     <script>
         // 创建一个空数组
         var userArr = [];
@@ -231,6 +236,8 @@
         NProgress.done()
     </script>
 
+
+
     <!-- 点击退出功能 -->
     <script>
         $('#logout').on('click', function() {
@@ -251,7 +258,51 @@
                 })
             }
         })
+
+        // <!-- 添加用户功能 -->
+        $('#addUser').on('click', function() {
+            // 获取用户输入的内容
+            var formData = $('#userForm').serialize();
+            // 发送请求
+            $.ajax({
+                type: 'post',
+                url: '/users',
+                data: formData,
+                success: function(res) {
+                    // 将数组追加 到数组
+                    userArr.push(res);
+                    // 重新渲染
+                    render(userArr);
+                    $('.form-control').val('');
+                },
+                error: function() {
+                    alert('添加失败');
+                }
+            });
+        })
+
+        // 完成图片上传功能 
+        $('#avatar').on('change', function() {
+            // 创建FormData对象
+            var formData = new FormData();
+            formData.append('avatar', this.files[0]);
+            // 发送ajax
+            $.ajax({
+                type: 'post',
+                url: '/upload',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(res) {
+                    $('#img').val(res[0].avatar);
+                    $('#prev').attr('src', res[0].avatar);
+                }
+            })
+        });
     </script>
+
+
+
 </body>
 
 </html>
