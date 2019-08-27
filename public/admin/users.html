@@ -194,7 +194,7 @@
     <script type="text/html" id="userTpl">
         {{each list}}
         <tr>
-            <td class="text-center"><input type="checkbox"></td>
+            <td class="text-center"><input type="checkbox" data-id="{{$value._id}}"></td>
             <td class="text-center"><img class="avatar" src="{{$value.avatar}}"></td>
             <td>{{$value.email}}</td>
             <td>{{$value.nickName}}</td>
@@ -372,7 +372,7 @@
 
         // 删除单个功能********************************************************
         $('tbody').on('click', '.remove', function() {
-            if (confirm('是否删除用户')) {
+            if (confirm('删除该用户？')) {
                 // 找到对应的id
                 var id = $(this).parent().attr('data-id');
 
@@ -424,6 +424,35 @@
                 $('#allRemove').show();
             } else {
                 $('#allRemove').hide();
+            }
+        })
+
+        // 为批量删除按钮添加点击事件
+        $('#allRemove').on('click', function() {
+            if (confirm('删除这些用户？')) {
+                var checkUser = $('tbody input:checked');
+                // 创建新数组
+                ids = [];
+                checkUser.each(function(index, item) {
+                    // 将循环的id给数组
+                    ids.push($(item).attr('data-id'))
+                })
+
+                // 发送请求
+                $.ajax({
+                    type: 'delete',
+                    url: '/users/' + ids.join('-'),
+                    success: function(res) {
+                        res.forEach(value => {
+                            // 在数组中找到相应的用户
+                            var index = userArr.findIndex(item => item._id == value._id);
+                            // 删除该用户
+                            userArr.splice(index, 1);
+                            // 重新渲染
+                            render(userArr)
+                        })
+                    }
+                })
             }
         })
     </script>
