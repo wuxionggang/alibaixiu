@@ -92,7 +92,7 @@
                 <div class="col-md-8">
                     <div class="page-action">
                         <!-- show when multiple checked -->
-                        <a class="btn btn-danger btn-sm" href="javascript:;" style="display: none">批量删除</a>
+                        <a class="btn btn-danger btn-sm" href="javascript:;" style="display: none" id="allRemove">批量删除</a>
                     </div>
                     <table class="table table-striped table-bordered table-hover">
                         <thead>
@@ -202,13 +202,13 @@
             <td>{{$value.role == 'admin'? '超级管理员' : '普通用户'}}</td>
             <td class="text-center" data-id='{{$value._id}}'>
                 <a href="javascript:;" class="btn btn-default btn-xs edit">编辑</a>
-                <a href="javascript:;" class="btn btn-danger btn-xs">删除</a>
+                <a href="javascript:;" class="btn btn-danger btn-xs remove">删除</a>
             </td>
         </tr>
         {{/each}}
     </script>
 
-    <!-- 显示用户信息 -->
+    <!-- 显示用户信息******************************************* -->
     <script>
         // 创建一个空数组
         var userArr = [];
@@ -239,7 +239,7 @@
 
 
 
-    <!-- 点击退出功能 -->
+    <!-- 点击退出功能****************************************************** -->
     <script>
         $('#logout').on('click', function() {
             // 弹出退出警示框
@@ -260,7 +260,7 @@
             }
         })
 
-        // <!-- 添加用户功能 -->
+        // <!-- 添加用户功能 -->************************************************************
         $('#addUser').on('click', function() {
             // 获取用户输入的内容
             var formData = $('#userForm').serialize();
@@ -303,7 +303,7 @@
         });
 
 
-        // 完成修改功能
+        // 完成修改功能***************************************************
         var id;
         $('tbody').on('click', '.edit', function() {
             // 获取对应的id
@@ -359,7 +359,7 @@
                         render(userArr);
                         $('#addUser').show();
                         $('#xiuUser').hide();
-                        $('form > h2').text('修改用户');
+                        $('form > h2').text('添加新用户');
                         $('.form-control').val('');
                         $('#prev').attr('src', '../assets/img/default.png');
 
@@ -367,6 +367,64 @@
                 })
             })
 
+        })
+
+
+        // 删除单个功能********************************************************
+        $('tbody').on('click', '.remove', function() {
+            if (confirm('是否删除用户')) {
+                // 找到对应的id
+                var id = $(this).parent().attr('data-id');
+
+                // 发送请求
+                $.ajax({
+                    type: 'delete',
+                    url: '/users/' + id,
+                    success: function(res) {
+                        // 在数组中找到相应的用户
+                        var index = userArr.findIndex(item => item._id == res._id);
+                        // 删除该用户
+                        userArr.splice(index, 1);
+                        // 重新渲染
+                        render(userArr)
+                    }
+                })
+            }
+        })
+
+
+        // 实现多选功能删除**************************************
+        $('thead input[type="checkbox"]').on('click', function() {
+            // 根据复选框的选中状态来改变下面的复选框的状态
+            var flag = $(this).prop('checked');
+            $('tbody input[type="checkbox"]').prop('checked', flag);
+            // 当全选按钮选中，就显示出来
+            if (flag) {
+                $('#allRemove').show();
+            } else {
+                $('#allRemove').hide();
+            }
+        });
+
+        $('tbody').on('click', 'input[type="checkbox"]', function() {
+            // 复选框的个数
+            var checkLength = $('tbody input[type="checkbox"]').length;
+            // 被选中复选框的个数
+            var clength = $('tbody input[type="checkbox"]:checked').length;
+
+            // 当两个长度一样时
+            if (checkLength == clength) {
+                $('thead input[type="checkbox').prop('checked', true);
+            } else {
+                $('thead input[type="checkbox').prop('checked', false);
+            }
+
+            // 当下面的复选框选中个数为两个，就显示
+            if (clength > 1) {
+                $('#allRemove').show();
+            } else {
+                $('#allRemove').hide();
+            }
         })
     </script>
 
