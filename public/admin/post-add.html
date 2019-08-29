@@ -78,6 +78,7 @@
                     </div>
                     <div class="form-group">
                         <button class="btn btn-primary" type="button" id="pAdd">保存</button>
+                        <button class="btn btn-primary" type="button" id="pEdit" style="display:none">编辑</button>
                     </div>
                 </div>
             </form>
@@ -199,6 +200,78 @@
             });
 
         });
+
+
+        // 文章编辑功能********************************************
+        var id = getUrlParams('id');
+        // 判断是修改还是写文章
+        if (id != -1) {
+            $.ajax({
+                type: 'get',
+                url: '/posts/' + id,
+                success: function(res) {
+                    // 获取数据之后，把数据放在相应的输入框
+                    $('#title').val(res.title);
+                    $('#content').val(res.content);
+                    $('h1').text('编辑文章');
+                    // 预览图片
+                    $('#prev').show().attr('src', res.thumbnail);
+                    // 放到隐藏域
+                    $('#img').val(res.thumbnail);
+
+                    // 然后把分类列表显示出来
+                    // 循环列表
+                    $('#category > option').each((index, item) => {
+                        // 判断分类是否和返回的值的一样
+                        if ($(item).attr('value') == res.category) {
+                            $(item).prop('selected', true);
+                        }
+                    })
+
+                    // 把发布状态显示出来
+                    // 循环列表
+                    $('#status > option').each((index, item) => {
+                        // 判断分类是否和返回的值的一样
+                        if ($(item).attr('value') == res.state) {
+                            $(item).prop('selected', true);
+                        }
+                    })
+
+                    // 显示时间
+                    // 通过截取字符串达到理想的格式
+                    $('#created').val(res.createAt && res.createAt.substr(0, 16))
+
+                    // 将保存按钮隐藏 将编辑按钮显示出来 
+                    $('#pAdd').hide();
+                    $('#pEdit').show();
+                }
+            })
+        }
+        // 定义函数获取id参数
+        function getUrlParams(name) {
+            // 把传过来的参数进行截取转换
+            var paramsAry = location.search.substr(1).split('$');
+            // 循环这个数据
+            for (var i = 0; i < paramsAry.length; i++) {
+                var tmp = paramsAry[i].split('=');
+                if (tmp[0] == name) {
+                    return tmp[1];
+                }
+            }
+            return -1
+        }
+
+        // 给编辑按钮注册点击事件编辑完成跳到文章列表界面
+        $('#pEdit').on('click', function() {
+            $.ajax({
+                type: 'put',
+                url: '/posts/' + id,
+                data: $('form').serialize(),
+                success: function(res) {
+                    location.href = 'posts.html';
+                }
+            })
+        })
     </script>
 </body>
 
