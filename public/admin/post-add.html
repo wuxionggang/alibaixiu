@@ -272,6 +272,17 @@
                 }
             })
         })
+
+
+        // 展示用户信息
+        $.ajax({
+            type: 'get',
+            url: '/users/' + userId,
+            success: function(res) {
+                $('.avatar').attr('src', res.avatar);
+                $('.prefile .name').html(res.nickName)
+            }
+        })
     </script>
 </body>
 

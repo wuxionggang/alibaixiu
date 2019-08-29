@@ -38,54 +38,55 @@
             <!-- <div class="alert alert-danger">
         <strong>错误！</strong>发生XXX错误
       </div> -->
-            <form class="form-horizontal">
+            <form class="form-horizontal" id="settingForm">
                 <div class="form-group">
                     <label for="site_logo" class="col-sm-2 control-label">网站图标</label>
                     <div class="col-sm-6">
                         <input id="site_logo" name="site_logo" type="hidden">
                         <label class="form-image">
               <input id="logo" type="file">
-              <img src="../assets/img/logo.png">
+              <img src="../assets/img/logo.png" id="prev">
               <i class="mask fa fa-upload"></i>
             </label>
+                        <input type="hidden" name="logo" id="hiddenLogo">
                     </div>
                 </div>
                 <div class="form-group">
                     <label for="site_name" class="col-sm-2 control-label">站点名称</label>
                     <div class="col-sm-6">
-                        <input id="site_name" name="site_name" class="form-control" type="type" placeholder="站点名称">
+                        <input id="site_name" name="title" class="form-control" type="type" placeholder="站点名称">
                     </div>
                 </div>
-                <div class="form-group">
+                <!-- <div class="form-group">
                     <label for="site_description" class="col-sm-2 control-label">站点描述</label>
                     <div class="col-sm-6">
-                        <textarea id="site_description" name="site_description" class="form-control" placeholder="站点描述" cols="30" rows="6"></textarea>
+                        <textarea id="site_description" name="description" class="form-control" placeholder="站点描述" cols="30" rows="6"></textarea>
                     </div>
                 </div>
                 <div class="form-group">
                     <label for="site_keywords" class="col-sm-2 control-label">站点关键词</label>
                     <div class="col-sm-6">
-                        <input id="site_keywords" name="site_keywords" class="form-control" type="type" placeholder="站点关键词">
+                        <input id="site_keywords" name="keywords" class="form-control" type="type" placeholder="站点关键词">
                     </div>
                 </div>
-                <div class="form-group">
-                    <label class="col-sm-2 control-label">评论</label>
-                    <div class="col-sm-6">
-                        <div class="checkbox">
-                            <label><input id="comment_status" name="comment_status" type="checkbox" checked>开启评论功能</label>
-                        </div>
-                        <div class="checkbox">
-                            <label><input id="comment_reviewed" name="comment_reviewed" type="checkbox" checked>评论必须经人工批准</label>
-                        </div>
+                <div class="form-group"> -->
+                <label class="col-sm-2 control-label">评论</label>
+                <div class="col-sm-6">
+                    <div class="checkbox">
+                        <label><input id="comment_status" name="comment" type="checkbox" checked  value="true">开启评论功能</label>
+                    </div>
+                    <div class="checkbox">
+                        <label><input id="comment_reviewed" name="review" type="checkbox" checked  value="true">评论必须经人工批准</label>
                     </div>
                 </div>
-                <div class="form-group">
-                    <div class="col-sm-offset-2 col-sm-6">
-                        <button type="submit" class="btn btn-primary">保存设置</button>
-                    </div>
-                </div>
-            </form>
         </div>
+        <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-6">
+                <button type="button" class="btn btn-primary" id="logoAdd">保存设置</button>
+            </div>
+        </div>
+        </form>
+    </div>
     </div>
 
     <div class="aside">
@@ -149,7 +150,80 @@
                 })
             }
         })
+
+
+        // 实现网站设置
+        // 当管理员选择图片时
+        $('#logo').on('change', function() {
+            // 获取选择的图片
+            var file = this.files[0];
+            // 创建formdata
+            var formDate = new FormData();
+            // 将选择的图片添加到formData对象
+            formDate.append('logo', file);
+            // 发送请求
+            $.ajax({
+                type: 'post',
+                url: '/upload',
+                data: formDate,
+                processData: false,
+                contentType: false,
+                success: function(res) {
+                    $('#hiddenLogo').val(res[0].logo)
+                        // 把图片放在预览区
+                    $('#prev').attr('src', res[0].logo)
+                }
+            })
+        })
+
+        $('#settingForm').on('submit', function() {
+            // 获取表单输入的内容
+            var formDate = $(this).serialize();
+
+            // 发送请求
+            $.ajax({
+                type: 'post',
+                url: '/settings',
+                data: formDate,
+                success: function(res) {
+                    location.reload()
+                }
+            })
+            return false;
+        })
+
+
+        // 展示参数
+        $.ajax({
+            type: 'get',
+            url: '/settings',
+            success: function(res) {
+                console.log(res)
+                if (res) {
+                    // 将logo地址存储在隐藏域中
+                    $('#hiddenLogo').val(res.logo);
+                    // 将logo显示在页面中 
+                    $('#prev').attr('src', res.logo);
+                    // 将网站标题显示在页面中
+                    $('input[name="title"]').val(res.title);
+                    // 将是否开启评论功能显示在页面中
+                    $('input[name="comment"]').prop('checked', res.comment);
+                    // 将评论是否经过人工审核显示在页面中
+                    $('input[name="review"]').prop('checked', res.review)
+                }
+            }
+        })
+
+        // 展示用户信息
+        $.ajax({
+            type: 'get',
+            url: '/users/' + userId,
+            success: function(res) {
+                $('.avatar').attr('src', res.avatar);
+                $('.prefile .name').html(res.nickName)
+            }
+        })
     </script>
 </body>
 
-</html>
+</html>sss
