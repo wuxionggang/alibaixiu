@@ -40,17 +40,18 @@
       </div> -->
             <div class="row">
                 <div class="col-md-4">
-                    <form>
+                    <form id="slideForm">
                         <h2>添加新轮播内容</h2>
                         <div class="form-group">
                             <label for="image">图片</label>
                             <!-- show when image chose -->
-                            <img class="help-block thumbnail" style="display: none">
-                            <input id="image" class="form-control" name="image" type="file">
+                            <img class="help-block thumbnail" style="display: none" id="prev">
+                            <input id="file" class="form-control" type="file" name="image">
+                            <input type="hidden" id="image" name="image">
                         </div>
                         <div class="form-group">
                             <label for="text">文本</label>
-                            <input id="text" class="form-control" name="text" type="text" placeholder="文本">
+                            <input id="text" class="form-control" name="title" type="text" placeholder="文本">
                         </div>
                         <div class="form-group">
                             <label for="link">链接</label>
@@ -72,7 +73,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
+                            <!-- <tr>
                                 <td class="text-center"><img class="slide" src="../uploads/slide_1.jpg"></td>
                                 <td>XIU功能演示</td>
                                 <td>#</td>
@@ -87,7 +88,7 @@
                                 <td class="text-center">
                                     <a href="javascript:;" class="btn btn-danger btn-xs">删除</a>
                                 </td>
-                            </tr>
+                            </tr> -->
                         </tbody>
                     </table>
                 </div>
@@ -134,6 +135,19 @@
 
     <script src="../assets/vendors/jquery/jquery.js"></script>
     <script src="../assets/vendors/bootstrap/js/bootstrap.js"></script>
+    <script src="../assets/vendors/art-template/template-web.js"></script>
+    <script type="text/html" id="slidesTpl">
+        {{each data}}
+        <tr>
+            <td class="text-center"><img class="slide" src="{{$value.image}}"></td>
+            <td>{{$value.title}}</td>
+            <td>{{$value.link}}</td>
+            <td class="text-center">
+                <a href="javascript:;" class="btn btn-danger btn-xs delete" data-id="{{$value._id}}">删除</a>
+            </td>
+        </tr>
+        {{/each}}
+    </script>
     <script>
         NProgress.done()
     </script>
@@ -156,6 +170,85 @@
                 })
             }
         })
+
+
+        // 轮播图***********************
+        $('#file').on('change', function() {
+            // 用户选择的文件
+            var file = this.files[0];
+            // 创建formData对象
+            var formData = new FormData();
+            // 追加到formdata对象中
+            formData.append('image', file);
+            // 发送请求
+            $.ajax({
+                type: 'post',
+                url: '/upload',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(res) {
+                    $('#image').val(res[0].image)
+                    $('#prev').show().attr('src', res[0].image)
+                }
+            })
+        });
+        // // 向服务器发请求，索要图片轮播数据
+        $.ajax({
+            type: 'get',
+            url: '/slides',
+            success: function(res) {
+                newArr = res
+                render();
+                $('#slideForm').val('');
+            }
+        })
+        var newArr = [];
+
+        // 当表单发生提交事件
+        $('#slideForm').on('submit', function() {
+            // 获取表单的内容
+            var formData = $(this).serialize();
+            // 发送请求
+            $.ajax({
+                type: 'post',
+                url: '/slides',
+                data: formData,
+                success: function(res) {
+                    newArr.push(res)
+                    render(newArr);
+                }
+            })
+            return false;
+
+        });
+        // 实现删除功能 ** ** ** ** ** ** *
+        $('tbody').on('click', '.delete', function() {
+            if (confirm('是否删除')) {
+                var id = $(this).attr('data-id');
+                $.ajax({
+                    type: 'delete',
+                    url: '/slides/' + id,
+                    success: function(res) {
+                        // 在数组中找到相应的用户
+                        var index = newArr.findIndex(item => item._id == res._id);
+                        // 删除该用户
+                        newArr.splice(index, 1);
+                        // 重新渲染
+                        render()
+                    }
+                })
+            }
+        })
+
+        function render(res) {
+            var html = template('slidesTpl', {
+                data: newArr
+            });
+            $('tbody').html(html);
+            console.log(html);
+
+        }
     </script>
 </body>
 
